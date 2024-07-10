@@ -38,7 +38,7 @@ when you receive a message, it'll be like this
 
 if you want to start publishing to channels, you first have to register yourself
 
-send this packet:
+to register, send this packet:
 ```json
 {
     "type": "register",
@@ -58,7 +58,7 @@ then to publish data:
 }
 ```
 
-if you or wubsub does something wrong, you'll receive an error message back like this
+if you or wubsub does something wrong, you'll receive an error message back like this:
 ```json
 {
     "type": "error",
@@ -68,3 +68,5 @@ if you or wubsub does something wrong, you'll receive an error message back like
     }
 }
 ```
+
+that simple
