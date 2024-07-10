@@ -46,9 +46,14 @@ type WubSubApp struct {
 
 	port  int
 	debug bool
+
+	tls bool
+	// these are the paths
+	keyfile  string
+	certfile string
 }
 
-func CreateApp(port int, debug bool) WubSubApp {
+func CreateApp(port int, debug bool, tls bool, keyfile string, certfile string) WubSubApp {
 	var upgrader = websocket.Upgrader{}
 	return WubSubApp{
 		make(map[string]*Channel),
@@ -59,6 +64,9 @@ func CreateApp(port int, debug bool) WubSubApp {
 		upgrader,
 		port,
 		debug,
+		tls,
+		keyfile,
+		certfile,
 	}
 }
 
@@ -69,7 +77,11 @@ func (app *WubSubApp) Start() {
 	http.HandleFunc("/", app.handleConnection)
 	port := strconv.Itoa(app.port)
 	wlog.InfoLog("Listening on port :" + port)
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	if app.tls {
+		log.Fatal(http.ListenAndServeTLS(":"+port, app.certfile, app.keyfile, nil))
+	} else {
+		log.Fatal(http.ListenAndServe(":"+port, nil))
+	}
 }
 
 func (app *WubSubApp) processChannels() {
