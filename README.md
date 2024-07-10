@@ -3,6 +3,8 @@ small, <250 line WebSocket pubsub server
 
 one publisher, multi subscriber
 
+probably best for lightweight usages like ipc rpc or such
+
 ## running the server
 `go run main.go`
 
