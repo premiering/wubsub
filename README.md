@@ -1,5 +1,5 @@
 # wubsub
-small, <250 line WebSocket pubsub server
+small, <400 line WebSocket pubsub client/server
 
 one publisher, multi subscriber
 
@@ -65,9 +65,7 @@ if you or wubsub does something wrong, you'll receive an error message back like
 {
     "type": "error",
     "channel": "",
-    "data": {
-        "message": "You aren't the publisher of this channel!"
-    }
+    "data": "You aren't the publisher of this channel!"
 }
 ```
 

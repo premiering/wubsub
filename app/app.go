@@ -7,31 +7,32 @@ import (
 
 	"github.com/gorilla/websocket"
 	wlog "github.com/premiering/wubsub/log"
+	"github.com/premiering/wubsub/message"
 )
 
 type Register struct {
-	client  *WSClient
+	client  *WSConnection
 	channel string
 }
 
 type Publish struct {
-	publisher *WSClient
+	publisher *WSConnection
 	channel   string
 	data      interface{}
 }
 
 type Subscribe struct {
-	subscriber *WSClient
+	subscriber *WSConnection
 	channel    string
 }
 
 type Disconnect struct {
-	client *WSClient
+	client *WSConnection
 }
 
 type Channel struct {
-	publisher   *WSClient
-	subscribers []*WSClient
+	publisher   *WSConnection
+	subscribers []*WSConnection
 }
 
 type WubSubApp struct {
@@ -98,15 +99,21 @@ func (app *WubSubApp) processChannels() {
 			// does channel already exist?
 			if channel != nil {
 				if channel.publisher != nil {
-					message := NewErrorMessage("Channel is already owned by another publisher.")
-					register.client.Send(&message)
+					var m message.Message
+					if channel.publisher == register.client {
+						m = message.NewErrorMessage("You are already registered to this channel!")
+					} else {
+						m = message.NewErrorMessage("Channel is already owned by another publisher.")
+					}
+					register.client.Send(&m)
 				} else {
 					channel.publisher = register.client
 				}
 				continue
 			}
 			// lets register it
-			channel = &Channel{register.client, make([]*WSClient, 0)}
+			channel = &Channel{register.client, make([]*WSConnection, 0)}
+			register.client.publishesTo[register.channel] = channel
 			app.channels[register.channel] = channel
 			if app.debug {
 				wlog.DebugLog("A client registered to " + register.channel)
@@ -116,18 +123,18 @@ func (app *WubSubApp) processChannels() {
 			channel := app.channels[publish.channel]
 			// does this channel even exist?
 			if channel == nil {
-				message := NewErrorMessage("This channel doesn't exist!")
+				message := message.NewErrorMessage("This channel doesn't exist!")
 				publish.publisher.Send(&message)
 				continue
 			}
 			// is this wrong publisher?
 			if channel.publisher != publish.publisher {
-				message := NewErrorMessage("You aren't the publisher of this channel!")
+				message := message.NewErrorMessage("You aren't the publisher of this channel!")
 				publish.publisher.Send(&message)
 				continue
 			}
 			// publish data
-			message := NewReceiveMessage(publish.channel, publish.data)
+			message := message.NewReceiveMessage(publish.channel, publish.data)
 			for _, subscriber := range channel.subscribers {
 				subscriber.Send(&message)
 			}
@@ -139,7 +146,7 @@ func (app *WubSubApp) processChannels() {
 			channel := app.channels[subscribe.channel]
 			if channel == nil {
 				// let's create the channel with no publisher
-				channel = &Channel{nil, make([]*WSClient, 0)}
+				channel = &Channel{nil, make([]*WSConnection, 0)}
 				app.channels[subscribe.channel] = channel
 			}
 			channel.subscribers = append(channel.subscribers, subscribe.subscriber)
