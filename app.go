@@ -116,7 +116,7 @@ func (app *WubSubApp) processChannels() {
 			register.client.publishesTo[register.channel] = channel
 			app.channels[register.channel] = channel
 			if app.debug {
-				wlog.DebugLog("A client registered to " + register.channel)
+				wlog.DebugLog("Registered: '%s'", register.channel)
 			}
 			break
 		case publish := <-app.publishes:
@@ -139,7 +139,7 @@ func (app *WubSubApp) processChannels() {
 				subscriber.Send(&message)
 			}
 			if app.debug {
-				wlog.DebugLog("A client published to " + publish.channel)
+				wlog.DebugLog("'%s' published: %v", publish.channel, publish.data)
 			}
 			break
 		case subscribe := <-app.subscribes:
@@ -151,7 +151,7 @@ func (app *WubSubApp) processChannels() {
 			}
 			channel.subscribers = append(channel.subscribers, subscribe.subscriber)
 			if app.debug {
-				wlog.DebugLog("A client subscribed to " + subscribe.channel)
+				wlog.DebugLog("Subscription: '%s'", subscribe.channel)
 			}
 			break
 		}
