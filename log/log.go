@@ -32,8 +32,3 @@ func log(title string, color string, format string, a []interface{}) {
 	}
 	fmt.Println(color + "wubsub " + title + " | " + gray + tstr + " |" + reset + " " + format)
 }
-
-func getTimeString() string {
-	t := time.Now()
-	return t.Format("15:04:05")
-}
