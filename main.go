@@ -2,8 +2,6 @@ package main
 
 import (
 	"flag"
-
-	"github.com/premiering/wubsub/app"
 )
 
 func main() {
@@ -14,6 +12,6 @@ func main() {
 	certfile := flag.String("certfile", "", "Path to cert file relative to working dir")
 	flag.Parse()
 
-	app := app.CreateApp(*port, *debugMode, *tls, *keyfile, *certfile)
+	app := CreateApp(*port, *debugMode, *tls, *keyfile, *certfile)
 	app.Start()
 }

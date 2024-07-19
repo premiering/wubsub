@@ -102,12 +102,13 @@ func (w *WubSubClient) handleConnection() {
 	for {
 		_, data, err := w.conn.ReadMessage()
 		if err != nil {
-			return
+			break
 		}
 		var message message.Message
 		json.Unmarshal(data, &message)
 		w.incoming <- message
 	}
+	w.handleError(errors.New("disconnected from wubsub"))
 }
 
 func (w *WubSubClient) processChannels() {
@@ -140,8 +141,12 @@ func (w *WubSubClient) handleMessage(m message.Message) {
 		}
 		break
 	case message.Error:
-		for _, handler := range w.onError {
-			handler(w, errors.New(m.Data.(string)))
-		}
+		w.handleError(errors.New(m.Data.(string)))
+	}
+}
+
+func (w *WubSubClient) handleError(err error) {
+	for _, handler := range w.onError {
+		handler(w, err)
 	}
 }
