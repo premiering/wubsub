@@ -36,5 +36,5 @@ func log(title string, color string, format string, a []interface{}) {
 	if len(a) > 0 {
 		format = fmt.Sprintf(format, a...)
 	}
-	fmt.Println(color + appName + " " + title + " | " + gray + tstr + " |" + reset + " " + format)
+	fmt.Println(color + appName + " " + title + gray + " | " + tstr + " |" + reset + " " + format)
 }
