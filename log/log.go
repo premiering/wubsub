@@ -12,6 +12,12 @@ var red = "\x1B[31m\x1B[1m"
 var magenta = "\x1B[35m\x1B[1m"
 var gray = "\x1B[90m"
 
+var appName = "unknown-app"
+
+func SetAppName(name string) {
+	appName = name
+}
+
 func InfoLog(format string, a ...interface{}) {
 	log("info", green, format, a)
 }
@@ -30,5 +36,5 @@ func log(title string, color string, format string, a []interface{}) {
 	if len(a) > 0 {
 		format = fmt.Sprintf(format, a...)
 	}
-	fmt.Println(color + "wubsub " + title + " | " + gray + tstr + " |" + reset + " " + format)
+	fmt.Println(color + appName + " " + title + " | " + gray + tstr + " |" + reset + " " + format)
 }

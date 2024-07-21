@@ -93,6 +93,9 @@ func (app *WubSubApp) processChannels() {
 				// leave the channel in the map so that we still know
 				// its subscribers but allow a new publisher to take over
 				channel.publisher = nil
+				if app.debug {
+					wlog.DebugLog("Disconnect unregister")
+				}
 			}
 		case register := <-app.registers:
 			channel := app.channels[register.channel]
@@ -106,13 +109,14 @@ func (app *WubSubApp) processChannels() {
 						m = message.NewErrorMessage("Channel is already owned by another publisher.")
 					}
 					register.client.Send(&m)
+					continue
 				} else {
 					channel.publisher = register.client
 				}
-				continue
+			} else {
+				// lets register it
+				channel = &Channel{register.client, make([]*WSConnection, 0)}
 			}
-			// lets register it
-			channel = &Channel{register.client, make([]*WSConnection, 0)}
 			register.client.publishesTo[register.channel] = channel
 			app.channels[register.channel] = channel
 			if app.debug {
