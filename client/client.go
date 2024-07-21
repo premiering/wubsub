@@ -18,10 +18,13 @@ type WubSubConnection struct {
 }
 
 func newConnection(builder *WubSubBuilder) WubSubConnection {
+	mq := make([]message.Message, 0)
+	queueSubRegMessages(builder, &mq)
+
 	return WubSubConnection{
 		builder,
 		sync.Mutex{},
-		make([]message.Message, 0),
+		mq,
 	}
 }
 
@@ -36,6 +39,7 @@ func (w *WubSubConnection) connect() {
 	w.connectBlocking()
 	w.builder.onInfo("disconnected from wubsub, waiting & retrying")
 	time.Sleep(time.Duration(w.builder.reconnectTimeMs) * time.Millisecond)
+	queueSubRegMessages(w.builder, &w.outgoing)
 	w.connect()
 }
 
@@ -56,18 +60,6 @@ func (w *WubSubConnection) connectBlocking() {
 
 	go func() {
 		defer close(done)
-		// queue subscribes / registers to our channels
-		// sent manually since we're not in the read loop yet
-		w.mtx.Lock()
-		for _, cha := range w.builder.subscribed {
-			s := message.NewSubscribeMessage(cha)
-			w.outgoing = append(w.outgoing, s)
-		}
-		for _, cha := range w.builder.registered {
-			r := message.NewRegisterMessage(cha)
-			w.outgoing = append(w.outgoing, r)
-		}
-		w.mtx.Unlock()
 		for {
 			_, data, err := conn.ReadMessage()
 			if err != nil {
@@ -114,5 +106,16 @@ func (w *WubSubConnection) connectBlocking() {
 				}
 			}
 		}
+	}
+}
+
+func queueSubRegMessages(builder *WubSubBuilder, queue *[]message.Message) {
+	for _, cha := range builder.subscribed {
+		s := message.NewSubscribeMessage(cha)
+		*queue = append(*queue, s)
+	}
+	for _, cha := range builder.registered {
+		r := message.NewRegisterMessage(cha)
+		*queue = append(*queue, r)
 	}
 }
