@@ -69,10 +69,10 @@ func main() {
     builder := client.NewBuilder(url.URL{Scheme: "ws", Host: "localhost:9190", Path: "/"})
     builder.Subscribe("cool_channel")
     builder.OnReceive("cool_channel", func(w *client.WubSubConnection, data interface{}) {
-		m := data.(string)
-		fmt.Println(m)
+        m := data.(string)
+        fmt.Println(m)
         // Output: "Isn't this great!?"
-	})
+    })
     builder.Connect()
     time.Sleep(time.Second * 10)
 }
