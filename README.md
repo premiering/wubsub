@@ -40,10 +40,10 @@ example of publishing with the client:
 ```go
 import (
     "fmt"
-	"net/url"
-	"time"
+    "net/url"
+    "time"
 
-	"github.com/premiering/wubsub/client"
+    "github.com/premiering/wubsub/client"
 )
 
 func main() {
@@ -59,10 +59,10 @@ example of subscribing with the client:
 ```go
 import (
     "fmt"
-	"net/url"
-	"time"
+    "net/url"
+    "time"
 
-	"github.com/premiering/wubsub/client"
+    "github.com/premiering/wubsub/client"
 )
 
 func main() {
