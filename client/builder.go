@@ -88,7 +88,6 @@ func (w *WubSubBuilder) SetReconnectTime(ms int) *WubSubBuilder {
 }
 
 func (w *WubSubBuilder) handleMessage(wc *WubSubConnection, m message.Message) {
-
 	switch m.Type {
 	case message.Receive:
 		handlers, exists := w.onReceive[m.Channel]
