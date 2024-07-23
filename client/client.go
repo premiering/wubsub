@@ -10,8 +10,6 @@ import (
 	"github.com/premiering/wubsub/message"
 )
 
-var outgoingWaitInterval = time.Millisecond * 5
-
 type WubSubConnection struct {
 	builder *WubSubBuilder
 
@@ -124,7 +122,6 @@ func (w *WubSubConnection) connectBlocking() {
 					w.builder.onError(w, err)
 				}
 			}
-			time.Sleep(outgoingWaitInterval)
 		}
 	}
 }
