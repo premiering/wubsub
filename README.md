@@ -130,5 +130,3 @@ if you or wubsub does something wrong, you'll receive an error message back like
     "data": "You aren't the publisher of this channel!"
 }
 ```
-
-that simple
