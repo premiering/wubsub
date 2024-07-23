@@ -10,11 +10,16 @@ import (
 	"github.com/premiering/wubsub/message"
 )
 
+var outgoingWaitInterval = time.Millisecond * 5
+
 type WubSubConnection struct {
 	builder *WubSubBuilder
 
-	mtx      sync.Mutex
-	outgoing []message.Message
+	mtx             sync.Mutex
+	outgoing        []message.Message
+	processMessages chan bool
+
+	connected bool
 }
 
 func newConnection(builder *WubSubBuilder) WubSubConnection {
@@ -25,6 +30,8 @@ func newConnection(builder *WubSubBuilder) WubSubConnection {
 		builder,
 		sync.Mutex{},
 		mq,
+		make(chan bool),
+		false,
 	}
 }
 
@@ -32,6 +39,9 @@ func (w *WubSubConnection) Publish(channel string, data interface{}) {
 	w.mtx.Lock()
 	m := message.NewPublishMessage(channel, data)
 	w.outgoing = append(w.outgoing, m)
+	if w.connected {
+		w.processMessages <- true
+	}
 	w.mtx.Unlock()
 }
 
@@ -39,7 +49,11 @@ func (w *WubSubConnection) connect() {
 	w.connectBlocking()
 	w.builder.onInfo("disconnected from wubsub, waiting & retrying")
 	time.Sleep(time.Duration(w.builder.reconnectTimeMs) * time.Millisecond)
+
+	w.mtx.Lock()
 	queueSubRegMessages(w.builder, &w.outgoing)
+	w.mtx.Unlock()
+
 	w.connect()
 }
 
@@ -52,6 +66,7 @@ func (w *WubSubConnection) connectBlocking() {
 	}
 
 	w.builder.onInfo("connected to wubsub")
+	w.connected = true
 
 	interrupt := make(chan os.Signal, 1)
 	done := make(chan struct{})
@@ -60,6 +75,7 @@ func (w *WubSubConnection) connectBlocking() {
 
 	go func() {
 		defer close(done)
+		w.processMessages <- true
 		for {
 			_, data, err := conn.ReadMessage()
 			if err != nil {
@@ -76,6 +92,9 @@ func (w *WubSubConnection) connectBlocking() {
 	for {
 		select {
 		case <-done:
+			w.mtx.Lock()
+			w.connected = false
+			w.mtx.Unlock()
 			return
 		case <-interrupt:
 			err := conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
@@ -87,7 +106,7 @@ func (w *WubSubConnection) connectBlocking() {
 			case <-time.After(time.Second):
 			}
 			return
-		default:
+		case <-w.processMessages:
 			w.mtx.Lock()
 			n := len(w.outgoing)
 			if n == 0 {
@@ -105,6 +124,7 @@ func (w *WubSubConnection) connectBlocking() {
 					w.builder.onError(w, err)
 				}
 			}
+			time.Sleep(outgoingWaitInterval)
 		}
 	}
 }
