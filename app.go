@@ -89,76 +89,89 @@ func (app *WubSubApp) processChannels() {
 	for {
 		select {
 		case disconnect := <-app.disconnects:
-			for _, channel := range disconnect.client.publishesTo {
-				// leave the channel in the map so that we still know
-				// its subscribers but allow a new publisher to take over
-				channel.publisher = nil
-				if app.debug {
-					wlog.DebugLog("Disconnect unregister")
-				}
-			}
+			app.handleDisconnect(&disconnect)
 		case register := <-app.registers:
-			channel := app.channels[register.channel]
-			// does channel already exist?
-			if channel != nil {
-				if channel.publisher != nil {
-					var m message.Message
-					if channel.publisher == register.client {
-						m = message.NewErrorMessage("You are already registered to this channel!")
-					} else {
-						m = message.NewErrorMessage("Channel is already owned by another publisher.")
-					}
-					register.client.Send(&m)
-					continue
-				} else {
-					channel.publisher = register.client
-				}
-			} else {
-				// lets register it
-				channel = &Channel{register.client, make([]*WSConnection, 0)}
-			}
-			register.client.publishesTo[register.channel] = channel
-			app.channels[register.channel] = channel
-			if app.debug {
-				wlog.DebugLog("Registered: '%s'", register.channel)
-			}
-			break
+			app.handleRegister(&register)
 		case publish := <-app.publishes:
-			channel := app.channels[publish.channel]
-			// does this channel even exist?
-			if channel == nil {
-				message := message.NewErrorMessage("This channel doesn't exist!")
-				publish.publisher.Send(&message)
-				continue
-			}
-			// is this wrong publisher?
-			if channel.publisher != publish.publisher {
-				message := message.NewErrorMessage("You aren't the publisher of this channel!")
-				publish.publisher.Send(&message)
-				continue
-			}
-			// publish data
-			message := message.NewReceiveMessage(publish.channel, publish.data)
-			for _, subscriber := range channel.subscribers {
-				subscriber.Send(&message)
-			}
-			if app.debug {
-				wlog.DebugLog("'%s' published: %v", publish.channel, publish.data)
-			}
-			break
+			app.handlePublish(&publish)
 		case subscribe := <-app.subscribes:
-			channel := app.channels[subscribe.channel]
-			if channel == nil {
-				// let's create the channel with no publisher
-				channel = &Channel{nil, make([]*WSConnection, 0)}
-				app.channels[subscribe.channel] = channel
-			}
-			channel.subscribers = append(channel.subscribers, subscribe.subscriber)
-			if app.debug {
-				wlog.DebugLog("Subscription: '%s'", subscribe.channel)
-			}
-			break
+			app.handleSubscribe(&subscribe)
 		}
+	}
+}
+
+func (w *WubSubApp) handleDisconnect(d *Disconnect) {
+	for _, channel := range d.client.publishesTo {
+		// leave the channel in the map so that we still know
+		// its subscribers but allow a new publisher to take over
+		channel.publisher = nil
+		if w.debug {
+			wlog.DebugLog("Disconnect unregister")
+		}
+	}
+}
+
+func (w *WubSubApp) handleRegister(r *Register) {
+	channel := w.channels[r.channel]
+	// does channel already exist?
+	if channel != nil {
+		if channel.publisher != nil {
+			var m message.Message
+			if channel.publisher == r.client {
+				m = message.NewErrorMessage("You are already registered to this channel!")
+			} else {
+				m = message.NewErrorMessage("Channel is already owned by another publisher.")
+			}
+			r.client.Send(&m)
+			return
+		} else {
+			channel.publisher = r.client
+		}
+	} else {
+		// lets register it
+		channel = &Channel{r.client, make([]*WSConnection, 0)}
+	}
+	r.client.publishesTo[r.channel] = channel
+	w.channels[r.channel] = channel
+	if w.debug {
+		wlog.DebugLog("Registered: '%s'", r.channel)
+	}
+}
+
+func (w *WubSubApp) handlePublish(p *Publish) {
+	channel := w.channels[p.channel]
+	// does this channel even exist?
+	if channel == nil {
+		message := message.NewErrorMessage("This channel doesn't exist!")
+		p.publisher.Send(&message)
+		return
+	}
+	// is this wrong publisher?
+	if channel.publisher != p.publisher {
+		message := message.NewErrorMessage("You aren't the publisher of this channel!")
+		p.publisher.Send(&message)
+		return
+	}
+	// publish data
+	message := message.NewReceiveMessage(p.channel, p.data)
+	for _, subscriber := range channel.subscribers {
+		subscriber.Send(&message)
+	}
+	if w.debug {
+		wlog.DebugLog("'%s' published: %v", p.channel, p.data)
+	}
+}
+
+func (w *WubSubApp) handleSubscribe(s *Subscribe) {
+	channel := w.channels[s.channel]
+	if channel == nil {
+		// let's create the channel with no publisher
+		channel = &Channel{nil, make([]*WSConnection, 0)}
+		w.channels[s.channel] = channel
+	}
+	channel.subscribers = append(channel.subscribers, s.subscriber)
+	if w.debug {
+		wlog.DebugLog("Subscription: '%s'", s.channel)
 	}
 }
 
