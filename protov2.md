@@ -1,7 +1,7 @@
 ## Protocol
-C->S indicates Client to Server
+C->S indicates Client to Server.
 
-S->C indicates Server to Client
+S->C indicates Server to Client.
 
 ### General commands
 #### C->S Creating a channel
