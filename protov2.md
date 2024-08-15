@@ -1,27 +1,3 @@
-## wubsub
-wubsub is a simple RPC server built on top of websockets [using melody](https://github.com/olahol/melody) with a simple JSON protocol.
-
-## Features
-- 🤏 Small codebase for easy iteration and adaptation (currently ~400 lines)
-- 👂 Single-publisher Pub/Sub support
-- 🎆 Traditional RPC function calling (named `restpie` in wubsub)
-- 🔒 SSL support
-
-## Run the server
-```
-go run .
-```
-
-With TLS:
-```bash
-go run . --tls --keyfile server.key --certfile server.cert
-```
-
-With TLS and debug:
-```
-go run . --tls --debug --keyfile server.key --certfile server.cert
-```
-
 ## Protocol
 C->S indicates Client to Server
 
@@ -162,6 +138,3 @@ Server will then receive this request and send the data to the general user
 ```
 
 The request is then considered complete.
-
-## License
-Uses the MIT license; do whatever you wish.

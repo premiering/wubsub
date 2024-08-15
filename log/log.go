@@ -14,8 +14,11 @@ var gray = "\x1B[90m"
 
 var appName = "unknown-app"
 
-func SetAppName(name string) {
+var useDebug = false
+
+func SetApp(name string, debug bool) {
 	appName = name
+	useDebug = debug
 }
 
 func InfoLog(format string, a ...interface{}) {
@@ -27,6 +30,9 @@ func ErrorLog(format string, a ...interface{}) {
 }
 
 func DebugLog(format string, a ...interface{}) {
+	if !useDebug {
+		return
+	}
 	log("debug", magenta, format, a)
 }
 

@@ -2,35 +2,45 @@ package message
 
 // This is the message format for client -> server and server -> client messages
 type Message struct {
-	Type    string      `json:"type"`
-	Channel string      `json:"channel"`
-	Data    interface{} `json:"data"`
+	Type      string      `json:"type"`
+	Channel   string      `json:"channel,omitempty"`
+	Topic     string      `json:"topic,omitempty"`
+	RequestId string      `json:"reqid,omitempty"`
+	Data      interface{} `json:"data,omitempty"`
 }
 
+// general
 const Register string = "register"
-const Publish string = "publish"
-const Subscribe string = "subscribe"
-const Receive string = "receive"
 const Error string = "error"
 
-// Server-side
-func NewErrorMessage(text string) Message {
-	return Message{Error, "", text}
+// pubsub
+const PSPublish string = "ps-pub"
+const PSSubscribe string = "ps-sub"
+const PSReceive string = "ps-recv"
+
+// restpie
+const RPRequestInitiated string = "pie-do"
+const RPAcknowledged string = "pie-ack"
+const RPRequestReceived string = "pie-req"
+const RPResponding string = "pie-resp"
+const RPReceiveResponse string = "pie-recv"
+
+func NewErrorMsg(text string) Message {
+	return Message{Error, "", "", "", text}
 }
 
-func NewReceiveMessage(channel string, data interface{}) Message {
-	return Message{Receive, channel, data}
+func NewPSReceiveMsg(channel string, topic string, data interface{}) Message {
+	return Message{PSReceive, channel, topic, "", data}
 }
 
-// Client-side
-func NewPublishMessage(channel string, data interface{}) Message {
-	return Message{Publish, channel, data}
+func NewRPAckMsg(channel string, topic string, good bool, reqid string) Message {
+	return Message{RPAcknowledged, channel, topic, reqid, good}
 }
 
-func NewRegisterMessage(channel string) Message {
-	return Message{Register, channel, nil}
+func NewRPReqMsg(channel string, topic string, reqid string, data interface{}) Message {
+	return Message{RPRequestReceived, channel, topic, reqid, data}
 }
 
-func NewSubscribeMessage(channel string) Message {
-	return Message{Subscribe, channel, nil}
+func NewRPRecvMsg(channel string, topic string, reqid string, data interface{}) Message {
+	return Message{RPReceiveResponse, channel, topic, reqid, data}
 }
