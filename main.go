@@ -145,7 +145,7 @@ func typeToHandler(t string) (MessageHandler, bool) {
 		return handlePSPublish, true
 	case message.PSSubscribe:
 		return handlePSSubscribe, true
-	case message.RPRequestInitiated:
+	case message.RPRequestInitiate:
 		return handleRPDoRequest, true
 	case message.RPResponding:
 		return handleRPRespond, true

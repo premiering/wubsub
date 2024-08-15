@@ -19,8 +19,8 @@ const PSSubscribe string = "ps-sub"
 const PSReceive string = "ps-recv"
 
 // restpie
-const RPRequestInitiated string = "pie-do"
-const RPAcknowledged string = "pie-ack"
+const RPRequestInitiate string = "pie-do"
+const RPAcknowledge string = "pie-ack"
 const RPRequestReceived string = "pie-req"
 const RPResponding string = "pie-resp"
 const RPReceiveResponse string = "pie-recv"
@@ -34,7 +34,7 @@ func NewPSReceiveMsg(channel string, topic string, data interface{}) Message {
 }
 
 func NewRPAckMsg(channel string, topic string, good bool, reqid string) Message {
-	return Message{RPAcknowledged, channel, topic, reqid, good}
+	return Message{RPAcknowledge, channel, topic, reqid, good}
 }
 
 func NewRPReqMsg(channel string, topic string, reqid string, data interface{}) Message {
