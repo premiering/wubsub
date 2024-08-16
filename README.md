@@ -8,7 +8,7 @@ wubsub is a simple RPC server built on top of websockets [using melody](https://
 - 🔒 SSL support
 
 ## Run the server
-```
+```bash
 go run .
 ```
 
@@ -18,7 +18,7 @@ go run . --tls --keyfile server.key --certfile server.cert
 ```
 
 With TLS and debug:
-```
+```bash
 go run . --tls --debug --keyfile server.key --certfile server.cert
 ```
 
